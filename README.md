@@ -23,7 +23,7 @@ if you're curious) with the following attributes and methods:
 * `window_class`: the internal class name for the window
 * `is_visible`: whether the window is visible (technically this is always True
   since Task Monitor ignores invisible windows)
-* `is\_enabled`: whether the window is enabled (I don't know what this means,
+* `is_enabled`: whether the window is enabled (I don't know what this means,
   but it always seems to be true)
 * `hwnd`: the internal ID for the window
 * `pid`: the process ID for thet executable owning the window
