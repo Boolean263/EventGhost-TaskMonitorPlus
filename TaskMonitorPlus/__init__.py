@@ -69,7 +69,7 @@ class Task(eg.PluginBase):
         self.AddEvents()
 
     def __start__(self, *dummyArgs):
-        self.names, self.hwnds = EnumProcesses()
+        self.pids, self.hwnds = EnumProcesses()
         self.flashing = set()
         self.lastActivated = None
         eg.messageReceiver.AddHandler(WM_APP + 1, self.WindowGotFocusProc)
@@ -81,11 +81,13 @@ class Task(eg.PluginBase):
         self.hookDll = CDLL(abspath(join(eg.corePluginDir, "Task", "TaskHook.dll")))
         self.hookDll.StartHook()
         trayWindow = 0
-        if "explorer" in self.names:
-            for hwnd in self.names["explorer"].hwnds:
+        for explorerPid in [x for x in self.pids if self.pids[x].name == "explorer"]:
+            for hwnd in self.pids[explorerPid].hwnds:
                 if GetClassName(hwnd) == "Shell_TrayWnd":
                     trayWindow = hwnd
                     break
+            if trayWindow != 0:
+                break
         self.desktopHwnds = (GetShellWindow(), trayWindow)
 
     def __stop__(self):
@@ -100,30 +102,29 @@ class Task(eg.PluginBase):
     def CheckWindow(self, hwnd):
         hwnd2 = GetAncestor(hwnd, GA_ROOT)
         if hwnd == 0 or hwnd2 in self.desktopHwnds:
-            return "Desktop", 0, None
+            return #"Desktop", 0, None
         if hwnd != hwnd2:
-            return None, None, None
+            return
         if GetWindowLong(hwnd, GWL_HWNDPARENT):
-            return None, None, None
+            return
         if not IsWindowVisible(hwnd):
-            return None, None, None
+            return
 
         if hwnd in self.hwnds:
-            processInfo = self.names.get(self.hwnds[hwnd].name, None)
-            return self.hwnds[hwnd].name, hwnd, processInfo
+            processInfo = self.pids.get(self.hwnds[hwnd].pid, None)
+            return processInfo
 
         pid = GetWindowPid(hwnd)
-        name = splitext(GetProcessName(pid))[0]
-        processInfo = self.names.get(name, None)
+        processInfo = self.pids.get(pid, None)
         if not processInfo:
-            processInfo = ProcessInfo(name)
-            self.names[name] = processInfo
-            self.TriggerEvent("Created." + name)
+            processInfo = ProcessInfo(pid)
+            self.pids[pid] = processInfo
+            self.TriggerEvent("Created." + processInfo.name)
 
         processInfo.hwnds[hwnd] = WindowInfo(hwnd)
         self.hwnds[hwnd] = processInfo
-        self.TriggerEvent("NewWindow." + name, processInfo.hwnds[hwnd])
-        return name, hwnd, processInfo
+        self.TriggerEvent("NewWindow." + processInfo.name, processInfo.hwnds[hwnd])
+        return processInfo
 
     def MyWndProc(self, dummyHwnd, dummyMesg, wParam, lParam):
         if wParam == HSHELL_WINDOWDESTROYED:
@@ -144,14 +145,14 @@ class Task(eg.PluginBase):
             winDetails = processInfo.hwnds[hwnd]
             del processInfo.hwnds[hwnd]
             del self.hwnds[hwnd]
-            name = processInfo.name
+            pid = processInfo.pid
             if hwnd == self.lastActivated:
-                self.TriggerEvent("Deactivated." + name, winDetails)
+                self.TriggerEvent("Deactivated." + processInfo.name, winDetails)
                 self.lastActivated = None
-            self.TriggerEvent("ClosedWindow." + name, winDetails)
+            self.TriggerEvent("ClosedWindow." + processInfo.name, winDetails)
             if len(processInfo.hwnds) == 0:
-                self.TriggerEvent("Destroyed." + name)
-                self.names.pop(name, None)
+                self.TriggerEvent("Destroyed." + processInfo.name)
+                self.pids.pop(pid, None)
 
     def WindowFlashedProc(self, dummyHwnd, dummyMesg, hwnd, dummyLParam):
         processInfo = self.hwnds.get(hwnd, None)
@@ -160,7 +161,7 @@ class Task(eg.PluginBase):
             self.TriggerEvent("Flashed." + processInfo.name, processInfo.hwnds[hwnd])
 
     def WindowGotFocusProc(self, dummyHwnd, dummyMesg, hwnd, dummyLParam):
-        thisProcessInfo = self.CheckWindow(hwnd)[2]
+        thisProcessInfo = self.CheckWindow(hwnd)
         if thisProcessInfo and hwnd != self.lastActivated:
             if hwnd in self.flashing:
                 self.flashing.remove(hwnd)
@@ -175,9 +176,33 @@ class Task(eg.PluginBase):
 
 
 class ProcessInfo(object):
-    def __init__(self, name):
-        self.name = name
+    """
+    Class representing an individual process, and keeping a list of
+    its open windows.
+    """
+    def __init__(self, pid):
+        self.pid = pid
+        self.name = splitext(GetProcessName(pid))[0]
         self.hwnds = dict()     # key=hwnd, val=WindowInfo(hwnd)
+
+    def __str__(self):
+        return self.name
+        # return self.name+"."+str(self.pid)
+
+    def __add__(self, other):
+        # Allow string concatenation without extra syntax
+        if isinstance(other, basestring):
+            return str(self)+other
+        # Intentionally raise TypeError
+        return self+other
+
+    def __radd__(self, other):
+        # Allow string concatenation without extra syntax
+        if isinstance(other, basestring):
+            return other+str(self)
+        # Intentionally raise TypeError
+        return self+other
+
 
 class WindowInfo(object):
     """
@@ -234,21 +259,20 @@ class WindowInfo(object):
 
 
 def EnumProcesses():
-    names = {}
+    pids = {}
     hwnds = {}
     dwProcessId = DWORD()
     for hwnd in GetTopLevelWindowList(False):
         GetWindowThreadProcessId(hwnd, byref(dwProcessId))
         pid = dwProcessId.value
-        name = splitext(GetProcessName(pid))[0]
-        if name not in names:
-            processInfo = ProcessInfo(name)
-            names[name] = processInfo
+        if pid not in pids:
+            processInfo = ProcessInfo(pid)
+            pids[pid] = processInfo
         else:
-            processInfo = names[name]
+            processInfo = pids[pid]
         processInfo.hwnds[hwnd] = WindowInfo(hwnd)
         hwnds[hwnd] = processInfo
-    return names, hwnds
+    return pids, hwnds
 
 def GetWindowPid(hwnd):
     dwProcessId = DWORD()
