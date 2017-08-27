@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PLUGNAME="iTunes"
+PLUGNAME="TaskMonitorPlus"
 SRCFILE="$PLUGNAME/__init__.py"
 sed -n -E \
     -e '1,/^eg\.RegisterPlugin/d' \
