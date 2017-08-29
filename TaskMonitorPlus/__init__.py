@@ -40,7 +40,7 @@ eg.RegisterPlugin(
         "Boolean263",
     ),
     version = "1.0.4.1",
-    guid = "{D1748551-C605-4423-B392-FB77E6842437}",
+    guid = "{4826ED71-64DE-496A-84A4-955402DEC3BC}",
     description = (
         "Generates events when an application starts, exits, flashes the "
         "taskbar, or gets switched into focus."
@@ -64,7 +64,7 @@ EnumWindows.argtypes = [ENUM_WINDOWS_PROC_TYPE, LPARAM]
 
 WM_SHELLHOOKMESSAGE = RegisterWindowMessage("SHELLHOOK")
 
-class Task(eg.PluginBase):
+class TaskMonitorPlus(eg.PluginBase):
     def __init__(self):
         self.AddEvents()
 
