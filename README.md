@@ -75,7 +75,7 @@ For more information on using EventGhost, consult the EventGhost
 ## Downloads and Support
 
 Official releases of this plugin are being made available at
-[this thread on the EventGhost forums](http://www.eventghost.net/forum/viewtopic.php?f=9&t=???).
+[this thread on the EventGhost forums](http://www.eventghost.net/forum/viewtopic.php?f=9&t=9804).
 You can also provide
 feedback and request support there. 
 
