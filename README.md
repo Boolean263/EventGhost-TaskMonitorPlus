@@ -44,12 +44,10 @@ the last known title.
 
 ## Usage
 
-**You should disable the standard Task Monitor plugin before installing
-this one.**
-
-Once you've done that, you can install this plugin and activate it like
-any other. If all is well, it should actually replace the standard Task
-Monitor plugin in your plugins list.
+You can install this plugin and activate it like any other.
+If you've used the standard Task Monitor plugin, the behaviour is identical,
+except that the events produced start with `TaskMonitorPlus.` instead
+of `Task.`.
 
 In case you aren't familiar with the standard Task Monitor plugin, here's
 how you can use it: at the bottom of the EventGhost window, uncheck the
@@ -57,7 +55,7 @@ checkbox that says "Log only assigned and activated events", then open
 or switch to a window which you'd like to take action on. You'll see an
 entry appear in the log that looks something like this:
 
-    Task.NewWindow.notepad <title='Untitled - Notepad', window_class='Notepad',...>
+    TaskMonitorPlus.NewWindow.notepad <title='Untitled - Notepad', window_class='Notepad',...>
 
 You can drag this entry from the log into any macro you've created, to cause
 the actions in that macro to be played back the next time that action takes
@@ -76,15 +74,17 @@ For more information on using EventGhost, consult the EventGhost
 
 ## Downloads and Support
 
-There are no official releases of this plugin yet. To install it, create a
-folder in your `Program Files (x86)\EventGhost\Plugins` directory called
-TaskMonitorPlus, and copy the `__init__.py` file from this git repo into
-that directory.
+Official releases of this plugin are being made available at
+[this thread on the EventGhost forums](http://www.eventghost.net/forum/viewtopic.php?f=9&t=???).
+You can also provide
+feedback and request support there. 
 
-I accept issues and pull requests from the official GitHub repo for
+I also accept issues and pull requests from the official GitHub repo for
 this project,
 [Boolean263/EventGhost-TaskMonitorPlus](https://github.com/Boolean263/EventGhost-TaskMonitorPlus).
-However, remember that this is not originally my work.
+However, remember that this is not originally my work. If you experience
+problems with Task Monitor Plus, please check if the problem also happens
+when you use the original Task Monitor plugin.
 
 ## Author
 
@@ -92,7 +92,21 @@ Boolean263, aka David Perry, based on work by Bitmonster and blackwind
 
 ## History
 
-The original, canonical Task Monitor ships with EventGhost. This version was
-copied from the 0.5.0-rc4 release of EventGhost and modified, based on ideas
+The original, canonical Task Monitor ships with EventGhost. This version
+is based on version 1.0.4 of that plugin (which was
+copied from the 0.5.0-rc4 release of EventGhost) and modified, based on ideas
 I had in (and feedback I received on) my
 [EventGhost-WindowWatcher](https://github.com/Boolean263/EventGhost-WindowWatcher) plugin.
+
+The TaskHook.dll that comes with this add-on is also taken directly from
+EventGhost 0.5.0-rc4. The source code comes from the
+[EventGhost/Extensions](https://github.com/EventGhost/Extensions) repo
+on github; the latest commit at the time I copied it was
+[e031339](https://github.com/EventGhost/Extensions/commit/e0313392f10fe7458c095e57e1800ed69f6581b9).
+I have not made any changes to the DLL source or binary as of this writing.
+
+## Changelog
+
+### v0.0.1 - 2017-08-29
+
+* Initial release of the Plus version of this plugin

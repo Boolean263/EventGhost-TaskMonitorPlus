@@ -39,7 +39,7 @@ eg.RegisterPlugin(
         "blackwind",
         "Boolean263",
     ),
-    version = "1.0.4.1",
+    version = "0.0.1",
     guid = "{4826ED71-64DE-496A-84A4-955402DEC3BC}",
     description = (
         "Generates events when an application starts, exits, flashes the "
