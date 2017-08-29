@@ -77,8 +77,8 @@ class TaskMonitorPlus(eg.PluginBase):
         eg.messageReceiver.AddHandler(WM_APP + 3, self.WindowDestroyedProc)
         eg.messageReceiver.AddHandler(WM_SHELLHOOKMESSAGE, self.MyWndProc)
         RegisterShellHookWindow(eg.messageReceiver.hwnd)
-        #self.hookDll = CDLL(abspath(join(dirname(__file__), "TaskHook.dll")))
-        self.hookDll = CDLL(abspath(join(eg.corePluginDir, "Task", "TaskHook.dll")))
+        self.hookDll = CDLL(abspath(join(dirname(__file__), "TaskHook.dll")))
+        #self.hookDll = CDLL(abspath(join(eg.corePluginDir, "Task", "TaskHook.dll")))
         self.hookDll.StartHook()
         trayWindow = 0
         for explorerPid in [x for x in self.pids if self.pids[x].name == "explorer"]:
