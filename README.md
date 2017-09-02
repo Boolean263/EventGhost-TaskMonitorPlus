@@ -107,6 +107,13 @@ I have not made any changes to the DLL source or binary as of this writing.
 
 ## Changelog
 
+### v0.0.2 - 2017-09-02
+
+* Bugfix: this plugin was breaking the event log if it tried to report a
+  window that had non-ASCII characters in its title. I don't know if this
+  is a bug in EventGhost itself or what, but I fixed it by using `repr()`
+  to return the window title.
+
 ### v0.0.1 - 2017-08-29
 
 * Initial release of the Plus version of this plugin

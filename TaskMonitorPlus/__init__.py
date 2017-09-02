@@ -245,7 +245,7 @@ class WindowInfo(object):
 
     def __repr__(self):
         """EG uses this to show the event's payload."""
-        return "<title='{}', window_class='{}',...>".format(self.title, self.window_class)
+        return "<title={}, window_class={},...>".format(repr(self.title), repr(self.window_class))
 
     # We could add useful methods from win32gui etc. to this object
     # to allow callers to do interesting stuff with the window referenced.
