@@ -64,6 +64,7 @@ EnumWindows.argtypes = [ENUM_WINDOWS_PROC_TYPE, LPARAM]
 
 WM_SHELLHOOKMESSAGE = RegisterWindowMessage("SHELLHOOK")
 
+
 class TaskMonitorPlus(eg.PluginBase):
     def __init__(self):
         self.AddEvents()
@@ -207,88 +208,17 @@ class ProcessInfo(object):
 class WindowInfo(object):
     """
     Class representing an individual window.
-    
+
     To use this class append eg.event.payload with one of the 
     following methods/attributes.
-    
+
     Attributes:
         window_class: type of window
         title: window title
         pid: process id of the process that owns this window
         name: executable name of process that owns this window
         hwnd: unique identifier for the window (assigned by Windows)
-
-    Methods:
-        SetFocus(): give the window keyboard/mouse focus
-        GetFocus(): if the window has focus or not
-            returns True/False
-        GetParent(): get the parent of this window
-            returns WindowInfo class
-        PostMessage(): do not use if you do not know how
-        SendMessage(): do not use if you do not know how
-        Destroy(): closes the window
-        Hide(): hides the window
-        Show(flag=True, activate=True, default=False): show the window
-            flag = to show or not to show
-            activate = give window focus 
-            default = window startup pos/size
-        IsAlive(): if the window is still kicking around
-            returns True/False
-        IsActive(): if the window is active or not
-            returns True / False
-        Animate(slide=True, blend=False, direction="", show=True, hide=True, duration=150): animate the showing and hiding of the window
-            blend = fade in or out - True/False        
-            direction = does not work with blend  - "UP"/"DOWN"/"LEFT"/"RIGHT"/""
-            show: if to use this animation while showing
-            hide: if to use this animation when hiding
-            duration: time in milliseconds for the animation to run for
-        SendKeystrokes(text): send keystrokes to the window
-            test = the same way the SendKeys action does it
-        Flash(caption=True, tray=False, until_active=False, continuous=False, times=6, speed=100): flash the window
-            caption = flash the caption - True/False
-            tray = flash the tray = True/False
-            until_active = don't stop flashing until the window is activated
-            continuous = do not stop flashing until told to do so. to stop flashing pass False to both the tray and caption.
-            times = number of times to flash (only applicable if until_active and continuous are False)
-            speed = length of time in milliseconds between flashes
-        IsKeyboardMouseEnabled(): hmmm......
-            returns True/False
-        EnableKeyboardMouse(flag=True): hmmmm.....
-            flag = True/False
-        BringToTop(): brings the window to the foreground
-        Restore(default=False): hmmm.... 
-            default = use original window startup pos/size - True/False
-        Maximize(): maximize the window
-        Minimize(activate=True, force=False): hmmm....
-            activate = set window focus - True/False
-            force = do it no matter what even if hung - True/False
-        GetPositionTuple():
-            returns(x, y)
-        GetPosition():
-            returns wx.Point(x, y)
-        GetSizeTuple():
-            returns(width, height)
-        GetSize():
-            returns wx.Size(width, height)
-        GetRect():
-            returns wx.Rect(x, y, width, height)
-        GetRectTuple():
-            returns (x, y, width, height)
-        SetRect(*args): sets size and position
-            args can be any of the following: 
-                SetRect(wx.Rect(x, y, width, height))
-                SetRect(((x, y), (width, height)))
-                SetRect(x, y, width, height)
-        SetSize(*args):
-            args can be any of the following:
-                SetSize(wx.Size(width, height))
-                SetSize((width, height))
-                SetSize(width, height)
-        SetPosition(*args):
-            args can be any of the following:
-                SetPosition(wx.Point(x, y)
-                SetPosition((x, y))
-                SetPosition(x, y)
+        help: help documentation
     """
 
     def __init__(self, hwnd):
@@ -300,9 +230,21 @@ class WindowInfo(object):
         self.window_class = GetClassName(hwnd)
 
     def IsAlive(self):
+        """
+        Checks to make sure the window is still open
+        
+        :return: True if window is still open else False
+        :rtype: bool
+        """
         return win32gui.IsWindow(self.hwnd)
 
     def IsActive(self):
+        """
+        Checks to see if the window is the active window
+        
+        :return: True if window is active else False
+        :rtype: bool
+        """
         return self.hwnd == win32gui.GetActiveWindow()
 
     def Animate(
@@ -314,7 +256,32 @@ class WindowInfo(object):
         hide=True,
         duration=150
     ):
-
+        """
+        Animates the hiding and showing of the window
+        
+        :param slide: Use the slide effect
+        :type slide: bool
+        
+        :param blend: Use the blend effect
+        :type blend: bool
+        
+        :param direction: the direction of the effect. choose from,
+            'UP', 'DOWN', 'LEFT', 'RIGHT', ''
+        :type direction: str
+        
+        :param show: Use effect when showing the window
+        :type show: bool
+        
+        :param hide: Use the effect when hiding the window
+        :type hide: bool
+        
+        :param duration: How long the total effect should run for in 
+            milliseconds
+        :type duration: int
+        
+        :return: None
+        :rtype: None
+        """
         if slide and blend:
             eg.PrintNotice(
                 'You are only allowed to select one type of effect, '
@@ -349,11 +316,54 @@ class WindowInfo(object):
         win32gui.AnimateWindow(self.hwnd, duration, style)
 
     def SendKeystrokes(self, text):
+        """
+        Animates the hiding and showing of the window
+
+        :param text: Keystrokes you want to send. You want 6o use the same 
+            format at the Send Keys Action
+        :type text: str
+        
+        :return: None
+        :rtype: None
+        """
         eg.SendKeys(self.hwnd, text, False, 2)
 
-    def Flash(self, caption=True, tray=False, until_active=False,
-        continuous=False, times=6, speed=100):
-
+    def Flash(
+        self,
+        caption=True,
+        tray=False,
+        until_active=False,
+        continuous=False,
+        times=6,
+        speed=100
+    ):
+        """
+        Flashes the caption or tray button for a duration.
+        
+        :param caption: Flash the caption
+        :type caption: bool
+        
+        :param tray: Flash the tray
+        :type tray: bool
+        
+        :param until_active: Flash until window is activated
+        :type until_active: bool
+        
+        :param continuous: Keep flashing until stopped. To stop the 
+            flashing you need to call this method with caption and tray
+            set to False
+        :type continuous: bool
+            
+        :param times: The number of time to flash (not used if until_active
+            or continuous is set)
+        :type times: int
+        
+        :param speed: The duration of time between flashes in milliseconds
+        :type speed: int
+        
+        :return: None
+        :rtype: None
+        """
         flag = 0
 
         if until_active:
@@ -376,18 +386,55 @@ class WindowInfo(object):
         win32gui.FlashWindowEx(self.hwnd, flag, times, speed)
 
     def BringToTop(self):
+        """
+        Brings the window to the front.
+        
+        :return: None
+        :rtype: None
+        """
         win32gui.BringWindowToTop(self.hwnd)
 
     def IsVisible(self):
+        """
+        Checks if the window is visible or not.
+        
+        :return: True if visible else False
+        :rtype: bool
+        
+        """
         return win32gui.IsWindowVisible(self.hwnd)
 
-    def EnableKeyboardMouse(self, flag=True):
-        win32gui.EnableWindow(self.hwnd, flag)
+    def EnableKeyboardMouse(self, enable=True):
+        """
+        Enables mouse and keyboard input for the window.
+        
+        :param enable: True to enable False to disable
+        :type enable: bool
+            
+        :return: None
+        :rtype: None
+        """
+        win32gui.EnableWindow(self.hwnd, enable)
 
     def IsKeyboardMouseEnabled(self):
+        """
+        Checks if keyboard and mouse are enabled.
+        
+        :return: True if enabled else False
+        :rtype: bool
+        """
         return win32gui.IsWindowEnabled(self.hwnd)
 
     def Restore(self, default=False):
+        """
+        Restores the window to it's previous state.
+        
+        :param default: Use startup position and size
+        :type default: bool
+        
+        :return: None
+        :rtype: None 
+        """
         if self.IsVisible():
             if default:
                 activate = win32con.SW_SHOWNORMAL
@@ -399,6 +446,18 @@ class WindowInfo(object):
         win32gui.ShowWindow(self.hwnd, activate)
 
     def Minimize(self, activate=True, force=False):
+        """
+        Minimize the window.
+        
+        :param activate: Activate the window after minimizing it
+        :type activate: bool
+        
+        :param force: Force the window to minimize, even if it is frozen
+        :type force: bool
+        
+        :return: None
+        :rtype: bool
+        """
         if self.IsVisible():
             if activate:
                 activate = win32con.SW_MINIMIZE
@@ -416,6 +475,12 @@ class WindowInfo(object):
         win32gui.ShowWindow(self.hwnd, activate)
 
     def Maximize(self):
+        """
+        Maximize the window.
+        
+        :return: None
+        :rtype: None
+        """
         if self.IsVisible():
             activate = win32con.SW_MAXIMIZE
         else:
@@ -423,11 +488,26 @@ class WindowInfo(object):
         win32gui.ShowWindow(self.hwnd, activate)
 
     def SetPosition(self, *args):
+        """
+        Sets the position of the window.
+        
+        :param args: This can be any of the following,
+            wx.Point(x, y)
+            wx.Rect(x, y, width height)
+            (x, y)
+            x, y
+        :type args: tuple, wx.Point, wx.Rect, int
+         
+        :return: None
+        :rtype: None
+        """
         if len(args) == 1:
             args = args[0]
 
         if isinstance(args, wx.Point):
             args = args.Get()
+        elif isinstance(args, wx.Rect):
+            args = args.Get()[:2]
 
         win32gui.SetWindowPos(
             self.hwnd,
@@ -439,11 +519,26 @@ class WindowInfo(object):
         )
 
     def SetSize(self, *args):
+        """
+        Sets the size of the window.
+        
+        :param args: Can be any one of the following,
+            wx.Size(width, height)
+            wx.Rect(x, y, width height)
+            (width, height)
+            width, height
+        :type args: tuple, wx.Size, wx.Rect, int
+            
+        :return: None
+        :rtype: None
+        """
         if len(args) == 1:
             args = args[0]
 
         if isinstance(args, wx.Size):
             args = args.Get()
+        elif isinstance(args, wx.Rect):
+            args = args.Get()[2:]
 
         win32gui.SetWindowPos(
             self.hwnd,
@@ -455,6 +550,19 @@ class WindowInfo(object):
         )
 
     def SetRect(self, *args):
+        """
+        Sets the position and size.
+        
+        :param args: Can be any of the following,
+            wx.Rect(x, y, width, height)
+            x, y, width, height
+            (x, y, width, height)
+            ((x, y), (width, height))
+        :type args: tuple, wx.Rect, int
+            
+        :return: None
+        :rtype: None
+        """
         if len(args) == 1:
             args = args[0]
 
@@ -475,30 +583,81 @@ class WindowInfo(object):
         self.SetPosition(args[:2])
 
     def GetRect(self):
+        """
+        Gets the current window rect.
+        
+        :return: a `wx.Rect <https://wxpython.org/Phoenix/docs/html/wx.Rect.html/>`_ object
+        :rtype: wx.Rect
+        """
         x, y, b_x, b_y = win32gui.GetWindowRect(self.hwnd)
         return wx.Rect(x, y, x + b_x, y + b_y)
 
     def GetRectTuple(self):
+        """
+        Gets the current window rect.
+
+        :return: (x, y, width, height)
+        :rtype: tuple
+        """
         x, y, b_x, b_y = win32gui.GetWindowRect(self.hwnd)
         return x, y, x + b_x, y + b_y
 
     def GetSize(self):
+        """
+        Gets the current window size.
+
+        :return: a `wx.Size <https://wxpython.org/Phoenix/docs/html/wx.Size.html/>`_ object
+        :rtype: wx.Size
+        """
         rect = self.GetRect()
-        return wx.Size(rect.width, rect.height)
+        return wx.Size(rect.Width, rect.Height)
 
     def GetSizeTuple(self):
+        """
+        Gets the current window size.
+
+        :return: (width, height)
+        :rtype: tuple
+        """
         rect = self.GetRect()
-        return rect.width, rect.height
+        return rect.Width, rect.Height
 
     def GetPosition(self):
+        """
+        Gets the current window position.
+
+        :return: a `wx.Point <https://wxpython.org/Phoenix/docs/html/wx.Point.html/>`_ object
+        :rtype: wx.Point
+        """
         rect = self.GetRect()
-        return wx.Position(rect.x, rect.y)
+        return wx.Point(rect.X, rect.Y)
 
     def GetPositionTuple(self):
+        """
+        Gets the current window position.
+
+        :return: (x, y)
+        :rtype: tuple
+        """
         rect = self.GetRect()
-        return rect.x, rect.y
+        return rect.X, rect.Y
 
     def Show(self, flag=True, activate=True, default=False):
+        """
+        Show the window.
+        
+        :param flag: True to show False to hide
+        :type flag: bool
+        
+        :param activate: True to activate window False to not
+        :type activate: bool
+        
+        :param default: Use window default size and position
+        :type default: bool
+         
+        :return: None
+        :rtype: None
+        """
         if activate:
             if default:
                 activate = win32con.SW_SHOWDEFAULT
@@ -517,15 +676,39 @@ class WindowInfo(object):
         win32gui.ShowWindow(self.hwnd, activate)
 
     def Hide(self):
+        """
+        Hides the window.
+        
+        :return: None
+        :rtype: None
+        """
         self.Show(False)
 
     def Destroy(self):
+        """
+        Destroys (closes) the window.
+        
+        :return: None
+        :rtype: None
+        """
         win32gui.DestroyWindow(self.hwnd)
 
     def SendMessage(self, message, wparam=None, lparam=None):
+        """
+        Sends a message to the window.
+        
+        For additional help please see the
+        `Microsoft KnowledgeBase <https://msdn.microsoft.com/en-us/library/windows/desktop/ms644950(v=vs.85).aspx/>`_
+        """
         win32gui.SendMessage(self.hwnd, message, wparam, lparam)
 
     def PostMessage(self, message, wparam=0, lparam=0):
+        """
+        Posts a message to the window.
+
+        For additional help please see the
+        `Microsoft KnowledgeBase <https://msdn.microsoft.com/en-us/library/windows/desktop/ms644944(v=vs.85).aspx/>`_
+        """
         win32gui.PostMessage(self.hwnd, message, wparam, lparam)
 
     def __getitem__(self, item):
@@ -535,20 +718,103 @@ class WindowInfo(object):
         """EG uses this to show the event's payload."""
         return "<dynamic class '%s'>" % self.title
 
-    def __str__(self):
-        return self.__class__.__doc__
+    @property
+    def help(self):
+        """
+        Collects the documentation from the different methods and returns them.
+        
+        :return: Documentation
+        :rtype: str
+        """
+        method_names = [
+            'IsAlive',
+            'IsActive',
+            'IsVisible',
+            'IsKeyboardMouseEnabled',
+            'EnableKeyboardMouse',
+            'GetParent',
+            'GetFocus',
+            'SetFocus',
+            'SetRect',
+            'GetRect',
+            'GetRectTuple',
+            'SetSize',
+            'GetSize',
+            'GetSizeTuple',
+            'SetPosition',
+            'GetPosition',
+            'GetPositionTuple',
+            'Show',
+            'Hide',
+            'Destroy',
+            'Restore',
+            'Minimize',
+            'Maximize',
+            'BringToTop',
+            'SendKeystrokes',
+            'SendMessage',
+            'PostMessage',
+            'Animate',
+            'Flash'
+        ]
+
+        replace_items = [
+            [':return:', 'Returns:'],
+            [':rtype:', 'Return Type:'],
+            [':param', 'Keyword '],
+            [':type', 'Data type for keyword ']
+
+        ]
+
+        help = self.__class__.__doc__[1:]
+        help += 'Methods:'
+
+        for method_name in method_names:
+            doc = getattr(self, method_name).__doc__
+            for pattern, new_text in replace_items:
+                doc = doc.replace(pattern, new_text)
+            help += (
+                '\n' +
+                ' ' * 8 +
+                method_name +
+                '\n' +
+                ' ' * 8 +
+                '=' * 80 +
+                ' ' * 12 +
+                doc.replace('\n', '\n    ')
+            )
+
+        return help
 
     # We could add useful methods from win32gui etc. to this object
     # to allow callers to do interesting stuff with the window referenced.
     # Here are a couple of examples.
 
     def GetParent(self):
+        """
+        Gets the parent window
+        
+        :return: A task.WindowInfo object that represents the parent window
+        :rtype: task.WindowInfo
+        """
         return WindowInfo(win32gui.GetParent(self.hwnd))
 
     def GetFocus(self):
+        """
+        Get the current window focus state.
+        
+        :return: True if in focus else False
+        :rtype: bool
+        """
         return self.hwnd == win32gui.GetFocus()
 
     def SetFocus(self):
+        """
+        Makes the window in focus.
+        
+        :return: None
+        :rtype: None
+        """
         win32gui.SetFocus(self.hwnd)
 
 
@@ -567,6 +833,7 @@ def EnumProcesses():
         processInfo.hwnds[hwnd] = WindowInfo(hwnd)
         hwnds[hwnd] = processInfo
     return pids, hwnds
+
 
 def GetWindowPid(hwnd):
     dwProcessId = DWORD()
