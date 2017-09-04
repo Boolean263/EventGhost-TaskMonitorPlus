@@ -99,6 +99,21 @@ class TaskMonitorPlus(eg.PluginBase):
         eg.messageReceiver.RemoveHandler(WM_APP + 2, self.WindowCreatedProc)
         eg.messageReceiver.RemoveHandler(WM_APP + 3, self.WindowDestroyedProc)
 
+    def CheckPlugins(self):
+        for plugin in eg.pluginList:
+            if (
+                plugin.info.guid == "{D1748551-C605-4423-B392-FB77E6842437}"
+                and plugin.info.treeItem.isEnabled
+            ):
+
+                eg.PrintError(
+                    'You cannot install Task Monitor while'
+                    ' Task Monitor Plus is installed.'
+                )
+                self.__stop__()
+                plugin.info.treeItem.SetEnable(False)
+                self.__start__()
+
     def CheckWindow(self, hwnd):
         hwnd2 = GetAncestor(hwnd, GA_ROOT)
         if hwnd == 0 or hwnd2 in self.desktopHwnds:
@@ -127,6 +142,7 @@ class TaskMonitorPlus(eg.PluginBase):
         return processInfo
 
     def MyWndProc(self, dummyHwnd, dummyMesg, wParam, lParam):
+        eg.actionThread.Call(self.CheckPlugins)
         if wParam == HSHELL_WINDOWDESTROYED:
             self.WindowDestroyedProc(None, None, lParam, None)
         elif wParam in (HSHELL_WINDOWACTIVATED, HSHELL_WINDOWCREATED, 0x8004):
