@@ -15,7 +15,8 @@ plugin for EventGhost. The original Task Monitor plugin generates events
 when a window opens, closes, flashes, or gains or loses focus. But the event
 contains nothing but the name of the executable which created the window.
 
-TaskMonitorPlus still produces these events, but now they come with a payload.
+TaskMonitorPlus still produces these events (as well as a new event for when
+a window's title changes), but now they come with a payload.
 The `eg.event.payload` produced by an event is an object (named WindowInfo,
 if you're curious) with the following attributes and methods:
 
@@ -109,6 +110,9 @@ I had in (and feedback I received on) my
 
 * Removed TaskHook.dll since it's not actually needed (thanks kgschlosser
   for the find)
+* Added the TitleChanged event after discovering the `HSHELL_REDRAW` event
+  type
+* Improved plugin documentation that shows within EventGhost
 
 ### v0.0.2 - 2017-09-02
 

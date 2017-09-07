@@ -25,9 +25,9 @@ from eg.WinApi.Dynamic import (
     BOOL, byref, DeregisterShellHookWindow, DWORD, EnumWindows,
     FreeLibrary, GA_ROOT, GetAncestor, GetShellWindow, GetWindowLong,
     GetWindowThreadProcessId, GWL_HWNDPARENT, HSHELL_WINDOWACTIVATED,
-    HSHELL_WINDOWCREATED, HSHELL_WINDOWDESTROYED, HWND, IsWindowVisible,
-    LPARAM, RegisterShellHookWindow, RegisterWindowMessage, WINFUNCTYPE,
-    WM_APP,
+    HSHELL_WINDOWCREATED, HSHELL_WINDOWDESTROYED, HWND,
+    IsWindowVisible, LPARAM, RegisterShellHookWindow, RegisterWindowMessage,
+    WINFUNCTYPE, WM_APP,
 )
 from eg.WinApi.Utils import GetProcessName
 import win32gui
@@ -47,6 +47,31 @@ eg.RegisterPlugin(
 <p>Generates events when an application starts, exits, flashes the
 taskbar, or gets switched into focus. Events carry a payload with
 information about the window that generated them.</p>
+
+<p>Events generated:</p>
+<ul>
+<li>TaskMonitorPlus.Created.<i>ExeName</i> : new process</li>
+<li>TaskMonitorPlus.Destroyed.<i>ExeName</i> : process ended</li>
+<li>TaskMonitorPlus.NewWindow.<i>ExeName</i> : new window</li>
+<li>TaskMonitorPlus.ClosedWindow.<i>ExeName</i> : closed window</li>
+<li>TaskMonitorPlus.Activated.<i>ExeName</i> : window activated (selected)</li>
+<li>TaskMonitorPlus.Deactivated.<i>ExeName</i> : window deactivated</li>
+<li>TaskMonitorPlus.Flashed.<i>ExeName</i> : window flashed</li>
+<li>TaskMonitorPlus.TitleChanged.<i>ExeName</i> : window title changed</li>
+</ul>
+
+<p>All events except Created and Destroyed carry a payload with information
+about the window affected. <tt>eg.result.payload</tt> has the following
+attributes:</p>
+<ul>
+<li>title</li>
+<li>window_class</li>
+<li>is_visible</li>
+<li>is_enabled</li>
+<li>hwnd (Windows' unique identifier for this window)</li>
+<li>pid (process ID of owning process)</li>
+<li>name (same as <i>ExeName</i> in the event)</li>
+</ul>
 """),
     icon = (
         "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABuklEQVR42o1Sv0tCYRQ9"
@@ -66,6 +91,9 @@ ENUM_WINDOWS_PROC_TYPE = WINFUNCTYPE(BOOL, HWND, LPARAM)
 EnumWindows.argtypes = [ENUM_WINDOWS_PROC_TYPE, LPARAM]
 
 WM_SHELLHOOKMESSAGE = RegisterWindowMessage("SHELLHOOK")
+
+# https://msdn.microsoft.com/en-us/library/windows/desktop/ms644991(v=vs.85).aspx
+HSHELL_REDRAW = 6 # "The title of a window in the task bar has been redrawn."
 
 class TaskMonitorPlus(eg.PluginBase):
     def __init__(self):
@@ -129,8 +157,12 @@ class TaskMonitorPlus(eg.PluginBase):
             self.WindowDestroyedProc(None, None, lParam, None)
         elif wParam in (HSHELL_WINDOWACTIVATED, HSHELL_WINDOWCREATED, 0x8004):
             self.WindowGotFocusProc(None, None, lParam, None)
+        elif wParam == HSHELL_REDRAW:
+            self.WindowTitleChangedProc(None, None, lParam, None)
         elif wParam == 0x8006:
             self.WindowFlashedProc(None, None, lParam, None)
+        else:
+            eg.PrintDebugNotice("MyWndProc unknown wParam:: 0x{:04X}".format(wParam))
         return 1
 
     def WindowCreatedProc(self, dummyHwnd, dummyMesg, hwnd, dummyLParam):
@@ -150,6 +182,13 @@ class TaskMonitorPlus(eg.PluginBase):
             if len(processInfo.hwnds) == 0:
                 self.TriggerEvent("Destroyed." + processInfo.name)
                 self.pids.pop(pid, None)
+
+    def WindowTitleChangedProc(self, dummyHwnd, dummyMesg, hwnd, dummyLParam):
+        processInfo = self.hwnds.get(hwnd, None)
+        if processInfo:
+            windowInfo = processInfo.hwnds[hwnd]
+            if windowInfo and windowInfo.old_title != windowInfo.title:
+                self.TriggerEvent("TitleChanged." + processInfo.name, windowInfo)
 
     def WindowFlashedProc(self, dummyHwnd, dummyMesg, hwnd, dummyLParam):
         processInfo = self.hwnds.get(hwnd, None)
@@ -225,6 +264,10 @@ class WindowInfo(object):
             return win32gui.IsWindowVisible(self.hwnd)
         elif name == 'is_enabled':
             return win32gui.IsWindowEnabled(self.hwnd)
+        elif name == 'old_title':
+            # Get the stored title for this window without updating it
+            # like we do for 'title' below.
+            return object.__getattribute__(self, 'title')
         elif name == 'title':
             # If the window is closed, GetWindowText and GetClassName
             # return empty strings, so return the cached versions.
