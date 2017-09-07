@@ -22,7 +22,7 @@ from os.path import abspath, dirname, join, splitext
 import eg
 from eg.WinApi import GetClassName, GetTopLevelWindowList, GetWindowText
 from eg.WinApi.Dynamic import (
-    BOOL, byref, CDLL, DeregisterShellHookWindow, DWORD, EnumWindows,
+    BOOL, byref, DeregisterShellHookWindow, DWORD, EnumWindows,
     FreeLibrary, GA_ROOT, GetAncestor, GetShellWindow, GetWindowLong,
     GetWindowThreadProcessId, GWL_HWNDPARENT, HSHELL_WINDOWACTIVATED,
     HSHELL_WINDOWCREATED, HSHELL_WINDOWDESTROYED, HWND, IsWindowVisible,
@@ -38,13 +38,16 @@ eg.RegisterPlugin(
         "Bitmonster",
         "blackwind",
         "Boolean263",
+        "kgschlosser",
     ),
-    version = "0.0.1",
+    version = "0.0.3",
+    url = 'https://github.com/Boolean263/EventGhost-TaskMonitorPlus',
     guid = "{4826ED71-64DE-496A-84A4-955402DEC3BC}",
-    description = (
-        "Generates events when an application starts, exits, flashes the "
-        "taskbar, or gets switched into focus."
-    ),
+    description = ("""
+<p>Generates events when an application starts, exits, flashes the
+taskbar, or gets switched into focus. Events carry a payload with
+information about the window that generated them.</p>
+"""),
     icon = (
         "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABuklEQVR42o1Sv0tCYRQ9"
         "L1FccpCEB73wVy1NjTrUPxD1lgZp0dWKaAhXxWhoyWgoIUjHBEH65RSE0CAUgWIPLAqR"
@@ -77,9 +80,6 @@ class TaskMonitorPlus(eg.PluginBase):
         eg.messageReceiver.AddHandler(WM_APP + 3, self.WindowDestroyedProc)
         eg.messageReceiver.AddHandler(WM_SHELLHOOKMESSAGE, self.MyWndProc)
         RegisterShellHookWindow(eg.messageReceiver.hwnd)
-        self.hookDll = CDLL(abspath(join(dirname(__file__), "TaskHook.dll")))
-        #self.hookDll = CDLL(abspath(join(eg.corePluginDir, "Task", "TaskHook.dll")))
-        self.hookDll.StartHook()
         trayWindow = 0
         for explorerPid in [x for x in self.pids if self.pids[x].name == "explorer"]:
             for hwnd in self.pids[explorerPid].hwnds:
@@ -91,8 +91,6 @@ class TaskMonitorPlus(eg.PluginBase):
         self.desktopHwnds = (GetShellWindow(), trayWindow)
 
     def __stop__(self):
-        self.hookDll.StopHook()
-        FreeLibrary(self.hookDll._handle)
         DeregisterShellHookWindow(eg.messageReceiver.hwnd)
         eg.messageReceiver.RemoveHandler(WM_SHELLHOOKMESSAGE, self.MyWndProc)
         eg.messageReceiver.RemoveHandler(WM_APP + 1, self.WindowGotFocusProc)
@@ -102,7 +100,7 @@ class TaskMonitorPlus(eg.PluginBase):
     def CheckWindow(self, hwnd):
         hwnd2 = GetAncestor(hwnd, GA_ROOT)
         if hwnd == 0 or hwnd2 in self.desktopHwnds:
-            return #"Desktop", 0, None
+            return
         if hwnd != hwnd2:
             return
         if GetWindowLong(hwnd, GWL_HWNDPARENT):
@@ -139,7 +137,6 @@ class TaskMonitorPlus(eg.PluginBase):
         self.CheckWindow(hwnd)
 
     def WindowDestroyedProc(self, dummyHwnd, dummyMesg, hwnd, dummyLParam):
-        #hwnd2 = GetAncestor(hwnd, GA_ROOT)
         processInfo = self.hwnds.get(hwnd, None)
         if processInfo:
             winDetails = processInfo.hwnds[hwnd]

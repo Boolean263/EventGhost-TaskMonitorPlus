@@ -44,6 +44,11 @@ the last known title.
 
 ## Usage
 
+You should **remove** Task Monitor from your Autostart list, if it's there,
+**before** installing Task Monitor Plus. Don't just disable Task Monitor,
+because it may still interfere with Task Monitor Plus as long as it's
+installed.
+
 You can install this plugin and activate it like any other.
 If you've used the standard Task Monitor plugin, the behaviour is identical,
 except that the events produced start with `TaskMonitorPlus.` instead
@@ -76,8 +81,7 @@ For more information on using EventGhost, consult the EventGhost
 
 Official releases of this plugin are being made available at
 [this thread on the EventGhost forums](http://www.eventghost.net/forum/viewtopic.php?f=9&t=9804).
-You can also provide
-feedback and request support there. 
+You can also provide feedback and request support there.
 
 I also accept issues and pull requests from the official GitHub repo for
 this project,
@@ -88,7 +92,8 @@ when you use the original Task Monitor plugin.
 
 ## Author
 
-Boolean263, aka David Perry, based on work by Bitmonster and blackwind
+Boolean263 (aka David Perry) and kgschlosser,
+based on work by Bitmonster and blackwind
 
 ## History
 
@@ -98,14 +103,12 @@ copied from the 0.5.0-rc4 release of EventGhost) and modified, based on ideas
 I had in (and feedback I received on) my
 [EventGhost-WindowWatcher](https://github.com/Boolean263/EventGhost-WindowWatcher) plugin.
 
-The TaskHook.dll that comes with this add-on is also taken directly from
-EventGhost 0.5.0-rc4. The source code comes from the
-[EventGhost/Extensions](https://github.com/EventGhost/Extensions) repo
-on github; the latest commit at the time I copied it was
-[e031339](https://github.com/EventGhost/Extensions/commit/e0313392f10fe7458c095e57e1800ed69f6581b9).
-I have not made any changes to the DLL source or binary as of this writing.
-
 ## Changelog
+
+### v0.0.3 - 2017-09-xx
+
+* Removed TaskHook.dll since it's not actually needed (thanks kgschlosser
+  for the find)
 
 ### v0.0.2 - 2017-09-02
 
