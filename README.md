@@ -81,7 +81,7 @@ checkbox that says "Log only assigned and activated events", then open
 or switch to a window which you'd like to take action on. You'll see an
 entry appear in the log that looks something like this:
 
-    TaskMonitorPlus.NewWindow.notepad <title='Untitled - Notepad', window_class='Notepad',...>
+    TaskMonitorPlus.NewWindow.notepad <title=u'Untitled - Notepad', window_class=u'Notepad',...>
 
 You can drag this entry from the log into any macro you've created, to cause
 the actions in that macro to be played back the next time that action takes
@@ -127,12 +127,23 @@ I had in (and feedback I received on) my
 
 ## Changelog
 
+### v0.0.4 = 2017-09-08
+
+* Improve caching of window title and class (should now behave better for
+  windows that legitimately have an empty string for either)
+* Raise a `WindowInfo.DeadWindow` exception when attempting to modify windows
+  that no longer exist (many query functions, such as `IsActive()`, don't
+  raise this and simply return `False`; `GetRect()` and the like still
+  raise an exception)
+* Raise a `WindowInfo.NoParent` exception (instead of the old `ValueError`)
+  when calling `GetParent()` on a window with no parent
+
 ### v0.0.3 - 2017-09-07
 
 * Removed TaskHook.dll since it's not actually needed (thanks kgschlosser
   for the find)
 * Added the TitleChanged event after discovering the `HSHELL_REDRAW` event
-  type
+  type (the event payload contains the window's new title)
 * Improved plugin documentation that shows within EventGhost
 * Add new WindowInfo methods (thanks kgschlosser)
 

@@ -35,6 +35,10 @@ class WindowInfo(object):
     - title: window's title (updated dynamically if possible)
     - window_class: window's class name (updated dynamically if possible)
     """
+
+    class DeadWindow(AssertionError): pass
+    class NoParent(ValueError): pass
+
     def __init__(self, hwnd):
         if not hwnd:
             raise ValueError("Invalid hwnd")
@@ -51,18 +55,14 @@ class WindowInfo(object):
     # the empty string. Return the cached values we have instead.
     @property
     def title(self):
-        title = GetWindowText(self.hwnd)
-        if title != '':
-            self.cached_title = title
-            return title
+        if self.IsAlive():
+            self.cached_title = GetWindowText(self.hwnd)
         return self.cached_title
 
     @property
     def window_class(self):
-        window_class = GetClassName(self.hwnd)
-        if window_class != '':
-            self.cached_class = window_class
-            return window_class
+        if self.IsAlive():
+            self.cached_class = GetClassName(self.hwnd)
         return self.cached_class
 
     def __repr__(self):
@@ -71,6 +71,14 @@ class WindowInfo(object):
 
     def __getitem__(self, item):
         return getattr(self, item)
+
+    def AssertAlive(self):
+        """
+        Called internally by functions that require their target window to
+        still be open.
+        """
+        if not self.IsAlive():
+            raise WindowInfo.DeadWindow("window no longer exists")
 
     # Methods for querying and modifying details about this window
     # (size, etc.)
@@ -119,6 +127,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         if slide and blend:
             eg.PrintNotice(
                 'You are only allowed to select one type of effect, '
@@ -166,6 +175,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         import time
         time.sleep(0.1)
         eg.SendKeys(win32gui.GetWindow(self.hwnd, win32con.GW_CHILD), text,
@@ -200,6 +210,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         flag = 0
 
         if until_active:
@@ -224,6 +235,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         win32gui.BringWindowToTop(self.hwnd)
 
     def IsVisible(self):
@@ -242,6 +254,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         win32gui.EnableWindow(self.hwnd, enable)
 
     def IsKeyboardMouseEnabled(self):
@@ -260,6 +273,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         if self.IsVisible():
             if default:
                 activate = win32con.SW_SHOWNORMAL
@@ -280,6 +294,7 @@ class WindowInfo(object):
         :return: None
         :rtype: bool
         """
+        self.AssertAlive()
         if self.IsVisible():
             if activate:
                 activate = win32con.SW_MINIMIZE
@@ -302,6 +317,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         if self.IsVisible():
             activate = win32con.SW_MAXIMIZE
         else:
@@ -320,6 +336,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         if len(args) == 1:
             args = args[0]
 
@@ -354,6 +371,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         if len(args) == 1:
             args = args[0]
 
@@ -388,6 +406,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         if len(args) == 1:
             args = args[0]
 
@@ -413,6 +432,7 @@ class WindowInfo(object):
         :return: a `wx.Rect <https://wxpython.org/Phoenix/docs/html/wx.Rect.html/>`_ object
         :rtype: wx.Rect
         """
+        self.AssertAlive()
         return wx.Rect(*self.GetRectTuple())
 
     def GetRectTuple(self):
@@ -421,6 +441,7 @@ class WindowInfo(object):
         :return: (x, y, width, height)
         :rtype: tuple
         """
+        self.AssertAlive()
         x, y, b_x, b_y = win32gui.GetWindowRect(self.hwnd)
         return x, y, x + b_x, y + b_y
 
@@ -430,6 +451,7 @@ class WindowInfo(object):
         :return: a `wx.Size <https://wxpython.org/Phoenix/docs/html/wx.Size.html/>`_ object
         :rtype: wx.Size
         """
+        self.AssertAlive()
         return wx.Size(*self.GetSizeTuple())
 
     def GetSizeTuple(self):
@@ -438,6 +460,7 @@ class WindowInfo(object):
         :return: (width, height)
         :rtype: tuple
         """
+        self.AssertAlive()
         rect = self.GetRect()
         return rect.Width, rect.Height
 
@@ -447,6 +470,7 @@ class WindowInfo(object):
         :return: a `wx.Point <https://wxpython.org/Phoenix/docs/html/wx.Point.html/>`_ object
         :rtype: wx.Point
         """
+        self.AssertAlive()
         return wx.Point(*self.GetPositionTuple())
 
     def GetPositionTuple(self):
@@ -455,6 +479,7 @@ class WindowInfo(object):
         :return: (x, y)
         :rtype: tuple
         """
+        self.AssertAlive()
         rect = self.GetRect()
         return rect.X, rect.Y
 
@@ -470,6 +495,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         if activate:
             if default:
                 activate = win32con.SW_SHOWDEFAULT
@@ -493,6 +519,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         self.Show(False)
 
     def Destroy(self):
@@ -501,6 +528,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         self.PostMessage(win32con.WM_DESTROY, 0, 0)
 
     def Close(self):
@@ -509,6 +537,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         self.PostMessage(win32con.WM_CLOSE, 0, 0)
 
     def SendMessage(self, message, wparam=None, lparam=None):
@@ -517,6 +546,7 @@ class WindowInfo(object):
         For additional help please see the
         `Microsoft KnowledgeBase <https://msdn.microsoft.com/en-us/library/windows/desktop/ms644950(v=vs.85).aspx/>`_
         """
+        self.AssertAlive()
         win32gui.SendMessage(self.hwnd, message, wparam, lparam)
 
     def PostMessage(self, message, wparam=0, lparam=0):
@@ -525,6 +555,7 @@ class WindowInfo(object):
         For additional help please see the
         `Microsoft KnowledgeBase <https://msdn.microsoft.com/en-us/library/windows/desktop/ms644944(v=vs.85).aspx/>`_
         """
+        self.AssertAlive()
         win32gui.PostMessage(self.hwnd, message, wparam, lparam)
 
     def GetParent(self):
@@ -533,7 +564,11 @@ class WindowInfo(object):
         :return: A task.WindowInfo object that represents the parent window
         :rtype: task.WindowInfo
         """
-        return WindowInfo(win32gui.GetParent(self.hwnd))
+        self.AssertAlive()
+        parent_hwnd = win32gui.GetParent(self.hwnd)
+        if not parent_hwnd:
+            raise WindowInfo.NoParent("current window has no parent")
+        return WindowInfo(parent_hwnd)
 
     def Focus(self):
         """
@@ -541,6 +576,7 @@ class WindowInfo(object):
         :return: None
         :rtype: None
         """
+        self.AssertAlive()
         win32gui.SetFocus(self.hwnd)
 
     def HasFocus(self):

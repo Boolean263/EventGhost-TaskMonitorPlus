@@ -26,7 +26,7 @@ eg.RegisterPlugin(
         "Boolean263",
         "kgschlosser",
     ),
-    version = "0.0.3",
+    version = "0.0.4",
     url = 'https://github.com/Boolean263/EventGhost-TaskMonitorPlus',
     guid = "{4826ED71-64DE-496A-84A4-955402DEC3BC}",
     description = ("""
