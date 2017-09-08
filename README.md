@@ -41,7 +41,7 @@ if you're curious) with the following attributes and methods:
 * `IsKeyboardMouseEnabled()`: returns True if so
 * `Restore()`: restores the window to its previous state
 * `Minimize()`: minimize (or un-minimize) the window
-* `Maximize()`: maximize (or un-maximize) the window
+* `Maximize()`: maximize the window
 * `SetPosition()`: set the window's position
 * `SetSize()`: set the window's size
 * `SetRect()`: set the window's position and size
@@ -107,9 +107,10 @@ You can also provide feedback and request support there.
 I also accept issues and pull requests from the official GitHub repo for
 this project,
 [Boolean263/EventGhost-TaskMonitorPlus](https://github.com/Boolean263/EventGhost-TaskMonitorPlus).
-However, remember that this is not originally my work. If you experience
-problems with Task Monitor Plus, please check if the problem also happens
-when you use the original Task Monitor plugin.
+However, remember that this is not originally my work (although admittedly
+we've changed it a fair bit these days) . If you experience problems with Task
+Monitor Plus, please check if the problem also happens when you use the
+original Task Monitor plugin.
 
 ## Author
 
@@ -126,7 +127,7 @@ I had in (and feedback I received on) my
 
 ## Changelog
 
-### v0.0.3 - 2017-09-xx
+### v0.0.3 - 2017-09-07
 
 * Removed TaskHook.dll since it's not actually needed (thanks kgschlosser
   for the find)
