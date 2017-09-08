@@ -22,21 +22,41 @@ if you're curious) with the following attributes and methods:
 
 * `title`: the title of the window
 * `window_class`: the internal class name for the window
-* `is_visible`: whether the window is visible (technically this is always True
-  since Task Monitor ignores invisible windows)
-* `is_enabled`: whether the window is enabled (I don't know what this means,
-  but it always seems to be true)
 * `hwnd`: the internal ID for the window
 * `pid`: the process ID for thet executable owning the window
 * `name`: the executable name of the process owning the window (same as in
   the event itself)
 * `GetParent()`: returns a new object representing the parent of this window
 * `Focus()`: directs focus to the window
+* `HasFocus()`: returns True if the window has focus
+* `IsAlive()`: returns True if the window is still open
+* `IsActive()`: returns True if this window is the currently active one
+* `Animate()`: coming soon
+* `SendKeystrokes()`: just like the Send Keys action in EventGhost
+* `Flash()`: make the window flash
+* `BringToTop()`: raise the window
+* `IsVisible()`: returns True if the window isn't hidden
+* `EnableKeyboardMouse()`: enable (or disable) mouse and keyboard input
+  for the window
+* `IsKeyboardMouseEnabled()`: returns True if so
+* `Restore()`: restores the window to its previous state
+* `Minimize()`: minimize (or un-minimize) the window
+* `Maximize()`: maximize (or un-maximize) the window
+* `SetPosition()`: set the window's position
+* `SetSize()`: set the window's size
+* `SetRect()`: set the window's position and size
+* `GetRect()` and `GetRectTuple()`: return window's position and size
+* `GetSize()` and `GetSizeTuple()`: return window's size
+* `GetPosition()` and `GetPositionTuple()`: return window's position
+* `Show()`: show (or hide) the window
+* `Hide()`: hide the window
+* `Destroy()`: destroy the window
+* `Close()`: close the window
+* `SendMessage()` and `PostMessage()`: low-level messaging to window
 
-The final two methods are mainly just proofs of concept. Other methods could
-be added, but I didn't want to go overboard with something I don't know if
-anyone will use. Likewise, I'm sure there are other properties that could
-be useful. I'd love to hear more about them!
+The methods are documented in the source code in detail. This documentation
+should appear in your IDE and in PyCharm (the Python shell that EventGhost
+includes under the Help menu).
 
 The window title can change over the window's lifetime. The `title` attribute
 tries to fetch the most recent window title whenever it's accessed, but if it
@@ -45,10 +65,10 @@ the last known title.
 
 ## Usage
 
-You should **remove** Task Monitor from your Autostart list, if it's there,
-**before** installing Task Monitor Plus. Don't just disable Task Monitor,
-because it may still interfere with Task Monitor Plus as long as it's
-installed.
+You should **remove** the Task Monitor plugin (which ships with EventGhost)
+from your Autostart list, if it's there, **before** installing Task Monitor
+Plus. Don't just disable Task Monitor, because it may still interfere with Task
+Monitor Plus as long as it's installed.
 
 You can install this plugin and activate it like any other.
 If you've used the standard Task Monitor plugin, the behaviour is identical,
@@ -113,6 +133,7 @@ I had in (and feedback I received on) my
 * Added the TitleChanged event after discovering the `HSHELL_REDRAW` event
   type
 * Improved plugin documentation that shows within EventGhost
+* Add new WindowInfo methods (thanks kgschlosser)
 
 ### v0.0.2 - 2017-09-02
 
