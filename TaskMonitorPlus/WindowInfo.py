@@ -19,12 +19,19 @@
 from os.path import splitext
 import win32gui
 import win32con
+from wx import GetProcessId
 
+import eg
 from eg.WinApi import GetClassName, GetWindowText
 from eg.WinApi.Utils import GetProcessName
 from eg.WinApi.Dynamic import (
     byref, DWORD, GetWindowThreadProcessId, IsWindowVisible,
 )
+
+# used for getting our own window name, since some people experience a freeze
+# otherwise:
+# http://www.eventghost.net/forum/viewtopic.php?f=9&t=9804&p=48065#p48062
+ourName = '['+eg.APP_NAME+']'
 
 class WindowInfo(object):
     """
@@ -48,7 +55,7 @@ class WindowInfo(object):
         self.pid = dwProcessId.value
         self.name = splitext(GetProcessName(self.pid))[0]
         # The following may change during a window's lifetime
-        self.cached_title = GetWindowText(hwnd)
+        self.cached_title = ourName if self.pid == GetProcessId() else GetWindowText(hwnd)
         self.cached_class = GetClassName(hwnd)
 
     # If the window is closed, GetWindowText() and GetClassName() will return
@@ -56,7 +63,7 @@ class WindowInfo(object):
     @property
     def title(self):
         if self.IsAlive():
-            self.cached_title = GetWindowText(self.hwnd)
+            self.cached_title = ourName if self.pid == GetProcessId() else GetWindowText(self.hwnd)
         return self.cached_title
 
     @property

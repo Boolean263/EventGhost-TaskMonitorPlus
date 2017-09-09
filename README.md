@@ -127,7 +127,15 @@ I had in (and feedback I received on) my
 
 ## Changelog
 
-### v0.0.4 = 2017-09-08
+### v0.0.5 - 2017-09-09
+
+* Fix
+  [reported](http://www.eventghost.net/forum/viewtopic.php?f=9&t=9804&p=48065#p48062)
+  EventGhost freeze when getting the title of EventGhost windows
+  (unfortunately, this means that `eg.event.payload.title` is no longer
+  meaningful for windows created by EventGhost itself)
+
+### v0.0.4 - 2017-09-08
 
 * Improve caching of window title and class (should now behave better for
   windows that legitimately have an empty string for either)
