@@ -72,6 +72,7 @@ attributes:</p>
     ),
 )
 
+import fnmatch # NOQA
 from os.path import splitext
 
 # Local imports
@@ -97,8 +98,25 @@ WM_SHELLHOOKMESSAGE = RegisterWindowMessage("SHELLHOOK")
 # https://msdn.microsoft.com/en-us/library/windows/desktop/ms644991(v=vs.85).aspx
 HSHELL_REDRAW = 6 # "The title of a window in the task bar has been redrawn."
 
+
+class Text(eg.TranslatableStrings):
+
+    class Title:
+        name = 'Search Window Title'
+        description = (
+            'Search for a specific window title or a part of the title. There '
+            'are 2 wildcards that can be used "?" and "*" (without the '
+            'quotes). The "?" wildcard is for a single character and the "*" '
+            'is for multiple characters. This action return True/False/None.'
+        )
+        title_lbl = 'Title:'
+
+
 class TaskMonitorPlus(eg.PluginBase):
+    text = Text
+
     def __init__(self):
+        self.AddAction(Title)
         self.AddEvents()
 
     def __start__(self, *dummyArgs):
@@ -232,6 +250,32 @@ def GetWindowPid(hwnd):
     dwProcessId = DWORD()
     GetWindowThreadProcessId(hwnd, byref(dwProcessId))
     return dwProcessId.value
+
+
+
+class Title(eg.ActionBase):
+
+    def __call__(self, title):
+        if eg.event.payload is None:
+            return None
+
+        return fnmatch.fnmatchcase(eg.event.payload.title, title)
+
+    def Configure(self, title=''):
+
+        text = self.text
+        panel = eg.ConfigPanel()
+
+        title_st = panel.StaticText(text.title_lbl)
+        title_ctrl = panel.TextCtrl(title)
+
+        title_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        title_sizer.Add(title_st, 0, wx.EXPAND | wx.ALL, 5)
+        title_sizer.Add(title_ctrl, 0, wx.EXPAND | wx.ALL, 5)
+
+        while panel.Affirmed():
+            panel.SetResult(title_ctrl.GetValue())
+
 
 #
 # Editor modelines  -  https://www.wireshark.org/tools/modelines.html
